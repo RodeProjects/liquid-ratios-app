@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">LiquidRatios</string>
-    <string name="component_count">Anzahl der Flüssigkeiten:</string>
-    <string name="component_count_compact">Anzahl der\nFlüssigkeiten:</string>
+    <string name="component_count">Anzahl der Bestandteile:</string>
+    <string name="component_count_compact_first">Anzahl der</string>
+    <string name="component_count_compact_second">Bestandteile:</string>
     <plurals name="select_component_count">
-        <item quantity="one">%1$d Flüssigkeit</item>
-        <item quantity="other">%1$d Flüssigkeiten</item>
+        <item quantity="one">%1$d Bestandteil</item>
+        <item quantity="other">%1$d Bestandteile</item>
     </plurals>
     <string name="unit_grams">Gramm</string>
     <string name="unit_milliliters">Milliliter</string>
@@ -15,6 +16,7 @@
     <string name="reset_confirm">Zurücksetzen</string>
     <string name="about_title">Über LiquidRatios</string>
     <string name="about_version">Version %1$s</string>
+    <string name="about_developer">Entwickler: Florian Rode</string>
     <string name="close">Schließen</string>
     <string name="ratio_title">Mischverhältnis %1$s</string>
     <string name="ratio_field">Verhältniswert %1$s</string>

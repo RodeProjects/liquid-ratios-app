@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -170,11 +171,42 @@ private fun Header(mix: Mix, dispatch: (EditorAction) -> Unit) {
             ) {
                 CountControl(
                     mix, if (roomy) 44.dp else 34.dp, dispatch,
-                    Modifier.weight(1f), compactLabel = scaledWidth < 370f,
+                    Modifier.weight(1f),
                 )
                 Spacer(Modifier.width(HeaderSpacing))
                 UnitControl(mix, if (roomy) 44.dp else 30.dp, dispatch)
                 SettingsMenu(dispatch, if (roomy) 48.dp else 40.dp, openAbout)
+            }
+        } else if (maxWidth.value >= 370f) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.wrapContentWidth(), verticalArrangement = Arrangement.Center) {
+                    Text(
+                        stringResource(R.string.component_count_compact_first),
+                        color = Ink, fontSize = 11.sp, lineHeight = 13.sp,
+                        maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        stringResource(R.string.component_count_compact_second),
+                        color = Ink, fontSize = 11.sp, lineHeight = 13.sp,
+                        maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Spacer(Modifier.width(8.dp))
+                Segments {
+                    for (count in MIN_COMPONENTS..MAX_COMPONENTS) {
+                        Segment(
+                            count.toString(), pluralStringResource(R.plurals.select_component_count, count, count),
+                            "count-$count", mix.count == count, 44.dp,
+                        ) { dispatch(EditorAction.SelectCount(count)) }
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+                UnitControl(mix, 44.dp, dispatch)
+                Spacer(Modifier.width(4.dp))
+                SettingsMenu(dispatch, 40.dp, openAbout)
             }
         } else {
             Column(Modifier.fillMaxWidth().padding(bottom = 5.dp)) {
@@ -199,7 +231,6 @@ private fun CountControl(
     itemWidth: Dp,
     dispatch: (EditorAction) -> Unit,
     modifier: Modifier,
-    compactLabel: Boolean = false,
 ) {
     Row(
         modifier,
@@ -207,9 +238,10 @@ private fun CountControl(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            stringResource(if (compactLabel) R.string.component_count_compact else R.string.component_count),
+            stringResource(R.string.component_count),
             Modifier.weight(1f, fill = false),
             color = Ink, fontSize = 13.sp, lineHeight = 16.sp,
+            maxLines = 2, softWrap = true, overflow = TextOverflow.Clip,
         )
         Segments {
             for (count in MIN_COMPONENTS..MAX_COMPONENTS) {

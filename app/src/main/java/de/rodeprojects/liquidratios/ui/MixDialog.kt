@@ -3,11 +3,13 @@ package de.rodeprojects.liquidratios.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -41,8 +43,18 @@ import de.rodeprojects.liquidratios.domain.Prompt
 internal fun AboutDialog(close: () -> Unit) {
     AlertDialog(
         onDismissRequest = close,
-        title = { Text(stringResource(R.string.about_title)) },
-        text = { Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME)) },
+        title = {
+            Column {
+                Text(stringResource(R.string.about_title))
+                HorizontalDivider(Modifier.padding(top = 12.dp), color = Divider)
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME))
+                Text(stringResource(R.string.about_developer))
+            }
+        },
         confirmButton = { TextButton(close) { Text(stringResource(R.string.close)) } },
     )
 }
