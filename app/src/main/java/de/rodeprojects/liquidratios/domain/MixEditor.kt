@@ -137,7 +137,7 @@ internal object MixEditor {
     fun sliderAmount(fraction: Float, maximum: BigDecimal): BigDecimal {
         val bounded = fraction.coerceIn(0f, 1f)
         if (bounded == 1f) return maximum
-        val snapPoint = (1..4).firstOrNull { kotlin.math.abs(bounded - it * .25f) <= .015f }
+        val snapPoint = (1..4).firstOrNull { kotlin.math.abs(bounded - it * .25f) <= .025f }
         if (snapPoint != null) {
             return maximum.multiply(BigDecimal.valueOf(snapPoint.toLong()))
                 .divide(BigDecimal.valueOf(4), 2, RoundingMode.HALF_UP)

@@ -120,7 +120,7 @@ class MixEditorTest {
             assertEquals(expected, NumberText.display(MixEditor.sliderAmount(point - .01f, maximum)))
             assertEquals(expected, NumberText.display(MixEditor.sliderAmount(point, maximum)))
         }
-        assertEquals("116", NumberText.display(MixEditor.sliderAmount(.232f, maximum)))
+        assertEquals("125,25", NumberText.display(MixEditor.sliderAmount(.232f, maximum)))
         assertEquals("0,13", NumberText.display(MixEditor.sliderAmount(.25f, BigDecimal("0.5"))))
         assertEquals("0,5", NumberText.display(MixEditor.sliderAmount(1f, BigDecimal("0.5"))))
     }

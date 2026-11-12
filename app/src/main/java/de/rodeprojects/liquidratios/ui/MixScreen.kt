@@ -162,36 +162,21 @@ private fun Header(mix: Mix, dispatch: (EditorAction) -> Unit) {
     var showAbout by rememberSaveable { mutableStateOf(false) }
     val openAbout = { showAbout = true }
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val scaledWidth = maxWidth.value / LocalDensity.current.fontScale
-        if (scaledWidth >= 300f) {
-            val roomy = scaledWidth >= 410f
+        if (maxWidth.value >= 370f) {
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 48.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CountControl(
-                    mix, if (roomy) 44.dp else 34.dp, dispatch,
-                    Modifier.weight(1f),
-                )
-                Spacer(Modifier.width(HeaderSpacing))
-                UnitControl(mix, if (roomy) 44.dp else 30.dp, dispatch)
-                SettingsMenu(dispatch, if (roomy) 48.dp else 40.dp, openAbout)
-            }
-        } else if (maxWidth.value >= 370f) {
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(Modifier.wrapContentWidth(), verticalArrangement = Arrangement.Center) {
+                Column(Modifier.wrapContentWidth(unbounded = true), verticalArrangement = Arrangement.Center) {
                     Text(
                         stringResource(R.string.component_count_compact_first),
-                        color = Ink, fontSize = 11.sp, lineHeight = 13.sp,
-                        maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
+                        color = Ink, fontSize = 13.sp, lineHeight = 16.sp,
+                        maxLines = 1, softWrap = false, overflow = TextOverflow.Clip,
                     )
                     Text(
                         stringResource(R.string.component_count_compact_second),
-                        color = Ink, fontSize = 11.sp, lineHeight = 13.sp,
-                        maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
+                        color = Ink, fontSize = 13.sp, lineHeight = 16.sp,
+                        maxLines = 1, softWrap = false, overflow = TextOverflow.Clip,
                     )
                 }
                 Spacer(Modifier.width(8.dp))
