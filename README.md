@@ -1,14 +1,14 @@
 # LiquidRatios
 
-LiquidRatios berechnet die Mengen für zwei, drei oder vier Flüssigkeiten, etwa für Kleber, Harze und Härter. Die deutschsprachige Android-App arbeitet vollständig offline und speichert die letzte gültige Mischung lokal. Sie benötigt weder ein Konto noch eine Netzwerkberechtigung.
+LiquidRatios berechnet die Mengen für Mischungen aus zwei, drei oder vier Bestandteilen, etwa für Harz und Härter. Die deutschsprachige Android-App arbeitet vollständig offline und speichert die letzte gültige Mischung lokal. Sie benötigt weder ein Konto noch eine Netzwerkberechtigung.
 
 ## Bedienung
 
-- Wähle die Anzahl der Flüssigkeiten und bearbeite das Verhältnis, die Gesamtmenge oder eine Einzelmenge durch Antippen. **Übernehmen** oder **Fertig** bestätigt die Eingabe. **Abbrechen** verwirft den Entwurf.
+- Wähle unter **Anzahl der Flüssigkeiten** die Zahl der Bestandteile. Tippe zum Bearbeiten auf einen Verhältniswert, eine Einzelmenge, die Gesamtmenge oder den Stift daneben. **Übernehmen** oder **Fertig** bestätigt die Eingabe. **Abbrechen** verwirft den Entwurf.
 - Der Slider ändert die Gesamtmenge beim Ziehen. Die Schritte betragen 1 g bzw. 1 ml und bei einer Maximalmenge unter 1 jeweils 0,01. Eine gebrochene Maximalmenge bleibt als rechter Endpunkt erreichbar.
-- Über die Skala rechts am Gefäß lässt sich die Maximalmenge bearbeiten. Bei einer Überschreitung kannst du den Eingabewert korrigieren, die Grenze manuell erhöhen oder abbrechen.
+- Tippe rechts am Gefäß auf die Maximalmenge oder ihren Stift, um die Grenze zu bearbeiten. Bei einer Überschreitung kannst du den Eingabewert korrigieren, die Grenze manuell erhöhen oder abbrechen.
 - Beim Wechsel zwischen Gramm und Milliliter bleiben die Zahlen nach Bestätigung gleich. Es findet keine physikalische Umrechnung statt.
-- Das Menü setzt nach Bestätigung alle Werte zurück. Die Startmischung ist 5:1 mit 250 g Gesamtmenge und 500 g Obergrenze.
+- Im Drei-Punkte-Menü kannst du alle Werte zurücksetzen und unter **Über LiquidRatios** die App-Version nachsehen. Die Startmischung ist 5:1 mit 250 g Gesamtmenge und 500 g Obergrenze.
 
 ## Starten und testen
 
@@ -46,6 +46,6 @@ Der Zustand speichert eine Gesamtmenge oder die zuletzt ausdrücklich eingegeben
 
 - Das Gefäß stellt die Gewichts- oder Volumenanteile schematisch dar. Dichten und tatsächliche Füllstände werden nicht ermittelt.
 - Manuelle Mengen haben bis zu zwölf Vor- und zwei Nachkommastellen. Verhältnisse unterstützen bis zu zwölf Vor- und zwölf Nachkommastellen. Die Übersicht zeigt maximal zwei Nachkommastellen. Sehr kleine Verhältnisse erscheinen als `<0,01`, während der Editor den vollständigen Wert zeigt.
-- Auf schmalen Displays und bei größerer Schrift bricht die Kopfzeile um. Der Bildschirm ist scrollbar, damit das Gefäß auch bei vier Karten oder im Querformat erreichbar bleibt.
+- Auf schmalen Displays und bei größerer Schrift bricht die Kopfzeile um. Im Hochformat vergrößert freier Platz die Abstände zwischen den Bereichen. Bei wenig Platz lässt sich bis unter die Gefäßbeschriftung scrollen.
 
 Die [Lizenzübersicht](docs/lizenzen.md) nennt die eingesetzten Drittkomponenten und die Pflichten bei einer späteren Distribution.

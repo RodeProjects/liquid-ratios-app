@@ -71,7 +71,18 @@ class MixScreenTest {
         compose.onNodeWithTag("unit-ml").assertIsSelected()
         amount("total", "250 ml")
         amount("component-0", "208,33 ml")
-        compose.onNodeWithText("Nach Volumen (ml)").assertIsDisplayed()
+        compose.onNodeWithText("Nach Volumen (ml)").assertDoesNotExist()
+    }
+
+    @Test
+    fun aboutMenuShowsTheInstalledVersion() {
+        compose.onNodeWithText("LiquidRatios").assertDoesNotExist()
+        click("settings")
+        compose.onNodeWithText("Über LiquidRatios").performClick()
+        compose.onNodeWithText("Über LiquidRatios").assertIsDisplayed()
+        compose.onNodeWithText("Version ${BuildConfig.VERSION_NAME}").assertIsDisplayed()
+        compose.onNodeWithText("Schließen").performClick()
+        compose.onNodeWithText("Über LiquidRatios").assertDoesNotExist()
     }
 
     @Test

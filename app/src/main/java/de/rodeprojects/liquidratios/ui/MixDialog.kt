@@ -29,12 +29,23 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import de.rodeprojects.liquidratios.BuildConfig
 import de.rodeprojects.liquidratios.R
 import de.rodeprojects.liquidratios.domain.EditorAction
 import de.rodeprojects.liquidratios.domain.InputError
 import de.rodeprojects.liquidratios.domain.InputField
 import de.rodeprojects.liquidratios.domain.Mix
 import de.rodeprojects.liquidratios.domain.Prompt
+
+@Composable
+internal fun AboutDialog(close: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = close,
+        title = { Text(stringResource(R.string.about_title)) },
+        text = { Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME)) },
+        confirmButton = { TextButton(close) { Text(stringResource(R.string.close)) } },
+    )
+}
 
 @Composable
 internal fun MixDialog(prompt: Prompt, mix: Mix, dispatch: (EditorAction) -> Unit) {

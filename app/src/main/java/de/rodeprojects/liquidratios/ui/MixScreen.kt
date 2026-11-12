@@ -42,14 +42,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -63,8 +67,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -91,6 +97,8 @@ internal fun amountText(amount: BigDecimal, unit: MeasureUnit): String =
 internal fun unitName(unit: MeasureUnit): String =
     stringResource(if (unit == MeasureUnit.GRAMS) R.string.unit_grams else R.string.unit_milliliters)
 
+private val HeaderSpacing = 10.dp
+
 @Composable
 internal fun MixScreen(state: AppState, dispatch: (EditorAction) -> Unit) {
     val editor = state.editor
@@ -104,38 +112,44 @@ internal fun MixScreen(state: AppState, dispatch: (EditorAction) -> Unit) {
             return@BoxWithConstraints
         }
         val mix = editor.mix
+        val portrait = maxHeight > maxWidth
         val vesselWidth = ((maxHeight - 56.dp) * VESSEL_ASPECT_RATIO).coerceIn(180.dp, 460.dp)
         Column(
             Modifier.widthIn(max = 580.dp).fillMaxWidth().verticalScroll(rememberScrollState())
-                .padding(horizontal = 14.dp).padding(top = 5.dp, bottom = 22.dp),
+                .heightIn(min = if (portrait) maxHeight else 0.dp)
+                .padding(horizontal = 14.dp).padding(top = 5.dp, bottom = if (portrait) 32.dp else 22.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            Header(mix, dispatch)
-            HorizontalDivider(color = Divider)
-            state.storageError?.let { error ->
-                Text(
-                    stringResource(if (error == StorageError.LOAD) R.string.storage_load_error else R.string.storage_save_error),
-                    Modifier.padding(top = 8.dp),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+            Column {
+                Header(mix, dispatch)
+                HorizontalDivider(color = Divider)
+                state.storageError?.let { error ->
+                    Text(
+                        stringResource(if (error == StorageError.LOAD) R.string.storage_load_error else R.string.storage_save_error),
+                        Modifier.padding(top = 8.dp),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
+                RatioSection(mix, dispatch)
             }
-            Spacer(Modifier.height(10.dp))
-            RatioSection(mix, dispatch)
-            Spacer(Modifier.height(8.dp))
-            TotalSection(mix, dispatch)
-            Spacer(Modifier.height(8.dp))
-            BoxWithConstraints(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(top = 8.dp)) {
+                TotalSection(mix, dispatch)
+            }
+            BoxWithConstraints(Modifier.fillMaxWidth().padding(top = 8.dp)) {
                 val wrapCards = maxWidth.value / LocalDensity.current.fontScale < 275f
                 Column {
                     mix.amounts.components.forEachIndexed { index, amount ->
-                        AmountCard(index, mix.ratios[index], amount, mix.unit, wrapCards) {
+                        AmountCard(index, amount, mix.unit, wrapCards) {
                             dispatch(EditorAction.OpenField(InputField.Component(index)))
                         }
                     }
                 }
             }
-            Spacer(Modifier.height(19.dp))
-            VesselSection(mix, vesselWidth) { dispatch(EditorAction.OpenField(InputField.Maximum)) }
+            VesselSection(mix, vesselWidth, Modifier.padding(top = 19.dp)) {
+                dispatch(EditorAction.OpenField(InputField.Maximum))
+            }
         }
         editor.prompt?.let { MixDialog(it, mix, dispatch) }
     }
@@ -143,67 +157,66 @@ internal fun MixScreen(state: AppState, dispatch: (EditorAction) -> Unit) {
 
 @Composable
 private fun Header(mix: Mix, dispatch: (EditorAction) -> Unit) {
+    var showAbout by rememberSaveable { mutableStateOf(false) }
+    val openAbout = { showAbout = true }
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val fontScale = LocalDensity.current.fontScale
-        val compact = maxWidth >= 328.dp && fontScale <= 1.05f
-        if (compact) {
-            val roomy = maxWidth >= 415.dp
+        val scaledWidth = maxWidth.value / LocalDensity.current.fontScale
+        if (scaledWidth >= 300f) {
+            val roomy = scaledWidth >= 410f
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 48.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Wordmark()
-                HeaderRule()
-                Text(
-                    stringResource(R.string.component_count_compact),
-                    color = Ink, fontSize = 9.sp, lineHeight = 11.sp,
+                CountControl(
+                    mix, if (roomy) 44.dp else 34.dp, dispatch,
+                    Modifier.weight(1f), compactLabel = scaledWidth < 370f,
                 )
-                CountControl(mix, if (roomy) 44.dp else 27.dp, dispatch)
-                HeaderRule()
-                UnitControl(mix, if (roomy) 44.dp else 26.dp, dispatch)
-                SettingsMenu(dispatch, if (roomy) 48.dp else 30.dp)
+                Spacer(Modifier.width(HeaderSpacing))
+                UnitControl(mix, if (roomy) 44.dp else 30.dp, dispatch)
+                SettingsMenu(dispatch, if (roomy) 48.dp else 40.dp, openAbout)
             }
         } else {
             Column(Modifier.fillMaxWidth().padding(bottom = 5.dp)) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Wordmark(Modifier.weight(1f))
+                CountControl(mix, 48.dp, dispatch, Modifier.fillMaxWidth())
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     UnitControl(mix, 48.dp, dispatch)
-                    SettingsMenu(dispatch, 48.dp)
-                }
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(R.string.component_count),
-                        Modifier.weight(1f).padding(end = 8.dp), color = Ink, fontSize = 13.sp,
-                    )
-                    CountControl(mix, 48.dp, dispatch)
+                    SettingsMenu(dispatch, 48.dp, openAbout)
                 }
             }
         }
     }
+    if (showAbout) AboutDialog { showAbout = false }
 }
 
 @Composable
-private fun Wordmark(modifier: Modifier = Modifier) {
-    Text(
-        stringResource(R.string.app_name), modifier,
-        color = Ink, fontSize = 17.sp, lineHeight = 21.sp, fontWeight = FontWeight.Bold,
-    )
-}
-
-@Composable
-private fun HeaderRule() {
-    Box(Modifier.height(18.dp).width(1.dp).background(Divider))
-}
-
-@Composable
-private fun CountControl(mix: Mix, itemWidth: Dp, dispatch: (EditorAction) -> Unit) {
-    Segments {
-        for (count in MIN_COMPONENTS..MAX_COMPONENTS) {
-            Segment(
-                count.toString(), pluralStringResource(R.plurals.select_component_count, count, count),
-                "count-$count", mix.count == count, itemWidth,
-            ) { dispatch(EditorAction.SelectCount(count)) }
+private fun CountControl(
+    mix: Mix,
+    itemWidth: Dp,
+    dispatch: (EditorAction) -> Unit,
+    modifier: Modifier,
+    compactLabel: Boolean = false,
+) {
+    Row(
+        modifier,
+        horizontalArrangement = Arrangement.spacedBy(HeaderSpacing),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(if (compactLabel) R.string.component_count_compact else R.string.component_count),
+            Modifier.weight(1f, fill = false),
+            color = Ink, fontSize = 13.sp, lineHeight = 16.sp,
+        )
+        Segments {
+            for (count in MIN_COMPONENTS..MAX_COMPONENTS) {
+                Segment(
+                    count.toString(), pluralStringResource(R.plurals.select_component_count, count, count),
+                    "count-$count", mix.count == count, itemWidth,
+                ) { dispatch(EditorAction.SelectCount(count)) }
+            }
         }
     }
 }
@@ -260,7 +273,7 @@ private fun Segment(
 }
 
 @Composable
-private fun SettingsMenu(dispatch: (EditorAction) -> Unit, width: Dp) {
+private fun SettingsMenu(dispatch: (EditorAction) -> Unit, width: Dp, openAbout: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val description = stringResource(R.string.menu)
     Box {
@@ -281,6 +294,13 @@ private fun SettingsMenu(dispatch: (EditorAction) -> Unit, width: Dp) {
                 onClick = {
                     expanded = false
                     dispatch(EditorAction.OpenReset)
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.about_title)) },
+                onClick = {
+                    expanded = false
+                    openAbout()
                 },
             )
         }
@@ -322,8 +342,9 @@ private fun RatioSection(mix: Mix, dispatch: (EditorAction) -> Unit) {
                 ) {
                     Box(
                         Modifier.fillMaxWidth().padding(vertical = 5.dp)
-                            .clip(shape).background(colors.tint)
-                            .border(1.5.dp, colors.accent, shape).padding(vertical = 4.dp, horizontal = 3.dp),
+                            .clip(shape).background(colors.tint.copy(alpha = .9f))
+                            .border(1.5.dp, colors.accent.copy(alpha = .85f), shape)
+                            .padding(vertical = 4.dp, horizontal = 3.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -336,10 +357,6 @@ private fun RatioSection(mix: Mix, dispatch: (EditorAction) -> Unit) {
                 }
             }
         }
-        Text(
-            stringResource(if (mix.unit == MeasureUnit.GRAMS) R.string.by_weight else R.string.by_volume),
-            color = Ink, fontSize = 12.sp, lineHeight = 16.sp,
-        )
     }
 }
 
@@ -353,18 +370,13 @@ private fun TotalSection(mix: Mix, dispatch: (EditorAction) -> Unit) {
             title, Modifier.weight(1f).padding(end = 8.dp),
             color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, lineHeight = 19.sp,
         )
-        Box(
-            Modifier.heightIn(min = 48.dp).widthIn(max = 185.dp).clip(RoundedCornerShape(8.dp))
-                .testTag("total")
-                .clickable(role = Role.Button, onClickLabel = title) {
-                    dispatch(EditorAction.OpenField(InputField.Total))
-                }.semantics { contentDescription = title },
-            contentAlignment = Alignment.CenterEnd,
+        EditableAmount(
+            value = current,
+            label = title,
+            modifier = Modifier.widthIn(max = 185.dp).testTag("total"),
+            style = TextStyle(color = Ink, fontSize = if (current.length > 11) 15.sp else 20.sp),
         ) {
-            Text(
-                current, color = Ink, fontSize = if (current.length > 11) 15.sp else 20.sp,
-                fontWeight = FontWeight.SemiBold, textAlign = TextAlign.End,
-            )
+            dispatch(EditorAction.OpenField(InputField.Total))
         }
     }
     val position = mix.amounts.total.divide(mix.maximum, MathContext.DECIMAL64).toFloat().coerceIn(0f, 1f)
@@ -410,9 +422,54 @@ private fun TotalSection(mix: Mix, dispatch: (EditorAction) -> Unit) {
 }
 
 @Composable
+internal fun EditableAmount(
+    value: String,
+    label: String,
+    modifier: Modifier,
+    style: TextStyle,
+    iconSize: Dp = 14.dp,
+    edit: () -> Unit,
+) {
+    Row(
+        modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(8.dp))
+            .clickable(role = Role.Button, onClickLabel = label, onClick = edit)
+            .semantics { contentDescription = label },
+        horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            value, Modifier.weight(1f, fill = false),
+            style = style, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.End,
+        )
+        Pencil(iconSize)
+    }
+}
+
+@Composable
+private fun Pencil(iconSize: Dp) {
+    Canvas(Modifier.size(iconSize)) {
+        val color = Color(0xFFCE9AF7)
+        val outline = Path().apply {
+            moveTo(size.width * .1f, size.height * .9f)
+            lineTo(size.width * .19f, size.height * .64f)
+            lineTo(size.width * .73f, size.height * .1f)
+            quadraticTo(size.width * .81f, size.height * .02f, size.width * .88f, size.height * .1f)
+            lineTo(size.width * .93f, size.height * .15f)
+            quadraticTo(size.width, size.height * .22f, size.width * .92f, size.height * .29f)
+            lineTo(size.width * .38f, size.height * .82f)
+            close()
+        }
+        drawPath(outline, color, style = Stroke(1.05.dp.toPx()))
+        drawLine(
+            color, Offset(size.width * .65f, size.height * .18f),
+            Offset(size.width * .84f, size.height * .37f), 1.dp.toPx(),
+        )
+    }
+}
+
+@Composable
 private fun AmountCard(
     index: Int,
-    ratio: BigDecimal,
     amount: BigDecimal,
     unit: MeasureUnit,
     wrap: Boolean,
@@ -423,32 +480,23 @@ private fun AmountCard(
     val componentName = stringResource(R.string.component_name, letter(index))
     val description = stringResource(R.string.component_amount, letter(index))
     val formattedAmount = amountText(amount, unit)
-    val share = stringResource(
-        if (ratio.compareTo(BigDecimal.ONE) == 0) R.string.ratio_part else R.string.ratio_parts,
-        NumberText.ratio(ratio),
-    )
+    val tint = colors.tint.copy(alpha = .9f)
     val cardModifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(shape)
         .testTag("component-$index")
         .clickable(role = Role.Button, onClickLabel = description, onClick = edit)
         .padding(vertical = 3.dp)
-        .background(Brush.horizontalGradient(listOf(colors.tint, colors.tint.copy(alpha = .48f), colors.tint)), shape)
-        .border(1.dp, colors.accent.copy(alpha = .87f), shape)
+        .background(Brush.horizontalGradient(listOf(tint, tint.copy(alpha = .43f), tint)), shape)
+        .border(1.dp, colors.accent.copy(alpha = .77f), shape)
         .padding(horizontal = 11.dp, vertical = 5.dp)
     if (wrap) {
         Column(cardModifier) {
-            ComponentLabel(componentName, colors.accent, Modifier.padding(top = 3.dp))
-            Row(
-                Modifier.fillMaxWidth().padding(start = 18.dp, top = 3.dp, bottom = 3.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                AmountAndShare(formattedAmount, share, TextAlign.Start)
-            }
+            ComponentLabel(componentName, colors.accent, Modifier.fillMaxWidth())
+            ComponentAmount(formattedAmount, Modifier.fillMaxWidth().padding(start = 18.dp, top = 3.dp))
         }
     } else {
         Row(cardModifier, verticalAlignment = Alignment.CenterVertically) {
-            ComponentLabel(componentName, colors.accent, Modifier.weight(1.12f))
-            HeaderRule()
-            AmountAndShare(formattedAmount, share, TextAlign.Center)
+            ComponentLabel(componentName, colors.accent, Modifier.weight(1f).padding(end = 8.dp))
+            ComponentAmount(formattedAmount)
         }
     }
 }
@@ -456,25 +504,22 @@ private fun AmountCard(
 @Composable
 private fun ComponentLabel(name: String, accent: Color, modifier: Modifier) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(10.dp).background(accent, CircleShape))
+        Box(Modifier.size(10.dp).background(accent.copy(alpha = .87f), CircleShape))
         Spacer(Modifier.width(8.dp))
         Text(
             name, color = Ink, fontSize = 13.sp,
             lineHeight = 16.sp, fontWeight = FontWeight.SemiBold,
+            maxLines = 1, overflow = TextOverflow.Ellipsis,
         )
     }
 }
 
 @Composable
-private fun RowScope.AmountAndShare(amount: String, share: String, amountAlignment: TextAlign) {
+private fun ComponentAmount(amount: String, modifier: Modifier = Modifier) {
     Text(
-        amount, Modifier.weight(1.06f).padding(horizontal = 3.dp), color = Ink,
+        amount, modifier, color = Ink,
         fontSize = if (amount.length > 9) 14.sp else 21.sp,
         lineHeight = if (amount.length > 9) 17.sp else 25.sp,
-        fontWeight = FontWeight.SemiBold, textAlign = amountAlignment,
-    )
-    Text(
-        share, Modifier.weight(.82f).padding(start = 3.dp), color = Ink,
-        fontSize = 12.sp, lineHeight = 15.sp, textAlign = TextAlign.Center,
+        fontWeight = FontWeight.SemiBold, textAlign = TextAlign.End,
     )
 }

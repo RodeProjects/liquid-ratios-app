@@ -2,28 +2,18 @@ package de.rodeprojects.liquidratios.ui
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -37,9 +27,9 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -56,7 +46,7 @@ import java.math.MathContext
 internal const val VESSEL_ASPECT_RATIO = 1.31f
 
 @Composable
-internal fun VesselSection(mix: Mix, maxVesselWidth: Dp, editMaximum: () -> Unit) {
+internal fun VesselSection(mix: Mix, maxVesselWidth: Dp, modifier: Modifier, editMaximum: () -> Unit) {
     val zero = amountText(BigDecimal.ZERO, mix.unit)
     val max = amountText(mix.maximum, mix.unit)
     val editLabel = stringResource(R.string.edit_maximum)
@@ -76,7 +66,7 @@ internal fun VesselSection(mix: Mix, maxVesselWidth: Dp, editMaximum: () -> Unit
             label = "Liquid level ${letter(index)}",
         )
     }
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         BoxWithConstraints(
             Modifier.widthIn(max = maxVesselWidth).fillMaxWidth().aspectRatio(VESSEL_ASPECT_RATIO),
         ) {
@@ -86,31 +76,18 @@ internal fun VesselSection(mix: Mix, maxVesselWidth: Dp, editMaximum: () -> Unit
                 levels,
                 Modifier.matchParentSize().testTag("vessel").semantics { contentDescription = description },
             )
-            Row(
-                Modifier.align(Alignment.TopEnd).padding(top = 7.dp)
-                    .fillMaxWidth(.27f).heightIn(min = 48.dp).testTag("maximum")
-                    .clip(CircleShape).clickable(role = Role.Button, onClickLabel = editLabel, onClick = editMaximum)
-                    .semantics { contentDescription = editLabel },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Row(
-                    Modifier.fillMaxWidth().clip(CircleShape)
-                        .background(Brush.verticalGradient(listOf(Color(0xFF181C20), Color(0xFF090C0E))))
-                        .border(1.5.dp, Divider, CircleShape)
-                        .padding(horizontal = if (compactScale) 4.dp else 6.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        max, Modifier.weight(1f, fill = false),
-                        color = SecondaryInk, fontSize = if (largeLimitText) 17.sp else 12.sp,
-                        lineHeight = if (largeLimitText) 21.sp else 15.sp,
-                        textAlign = TextAlign.Center, fontWeight = FontWeight.SemiBold,
-                    )
-                    Pencil(if (compactScale) 12.dp else 14.dp)
-                }
-            }
+            EditableAmount(
+                value = max,
+                label = editLabel,
+                modifier = Modifier.align(Alignment.TopEnd).padding(top = 7.dp)
+                    .fillMaxWidth(.27f).testTag("maximum"),
+                style = TextStyle(
+                    color = SecondaryInk, fontSize = if (largeLimitText) 17.sp else 12.sp,
+                    lineHeight = if (largeLimitText) 21.sp else 15.sp,
+                ),
+                iconSize = if (compactScale) 12.dp else 14.dp,
+                edit = editMaximum,
+            )
             Text(
                 zero, Modifier.align(Alignment.BottomStart)
                     .padding(start = maxWidth * .744f, bottom = 13.dp),
@@ -215,25 +192,4 @@ private fun GlassVessel(levels: List<State<Float>>, modifier: Modifier) {
             }
         }
     })
-}
-
-@Composable
-private fun Pencil(iconSize: Dp) {
-    Canvas(Modifier.size(iconSize)) {
-        val outline = Path().apply {
-            moveTo(size.width * .1f, size.height * .9f)
-            lineTo(size.width * .19f, size.height * .64f)
-            lineTo(size.width * .73f, size.height * .1f)
-            quadraticTo(size.width * .81f, size.height * .02f, size.width * .88f, size.height * .1f)
-            lineTo(size.width * .93f, size.height * .15f)
-            quadraticTo(size.width, size.height * .22f, size.width * .92f, size.height * .29f)
-            lineTo(size.width * .38f, size.height * .82f)
-            close()
-        }
-        drawPath(outline, Ink, style = Stroke(1.05.dp.toPx()))
-        drawLine(
-            Ink, Offset(size.width * .65f, size.height * .18f),
-            Offset(size.width * .84f, size.height * .37f), 1.dp.toPx(),
-        )
-    }
 }
