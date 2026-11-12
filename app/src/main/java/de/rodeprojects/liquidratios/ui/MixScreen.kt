@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -49,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -400,8 +402,9 @@ private fun TotalSection(mix: Mix, dispatch: (EditorAction) -> Unit) {
     val position = mix.amounts.total.divide(mix.maximum, MathContext.DECIMAL64).toFloat().coerceIn(0f, 1f)
     var dragging by remember { mutableStateOf(false) }
     var dragPosition by remember { mutableFloatStateOf(position) }
+    val sliderOffset = (-8).dp
     Box(Modifier.fillMaxWidth().height(26.dp), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxWidth().height(17.dp)) {
+        Canvas(Modifier.fillMaxWidth().height(17.dp).offset(y = sliderOffset)) {
             val radius = CornerRadius(size.height / 2f)
             drawRoundRect(Color(0xFF1B1B1B), cornerRadius = radius)
             if (position > 0f) {
@@ -428,7 +431,7 @@ private fun TotalSection(mix: Mix, dispatch: (EditorAction) -> Unit) {
                 dispatch(EditorAction.Slide(it))
             },
             onValueChangeFinished = { dragging = false },
-            modifier = Modifier.fillMaxWidth().testTag("amount-slider")
+            modifier = Modifier.fillMaxWidth().offset(y = sliderOffset).testTag("amount-slider")
                 .onPreviewKeyEvent { event ->
                     val increase = when (event.key) {
                         Key.DirectionRight, Key.DirectionUp -> true
@@ -510,13 +513,31 @@ private fun AmountCard(
     val componentName = stringResource(R.string.component_name, letter(index))
     val description = stringResource(R.string.component_amount, letter(index))
     val formattedAmount = amountText(amount, unit)
-    val tint = colors.tint.copy(alpha = .9f)
     val cardModifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(shape)
         .testTag("component-$index")
         .clickable(role = Role.Button, onClickLabel = description, onClick = edit)
         .padding(vertical = 3.dp)
-        .background(Brush.horizontalGradient(listOf(tint, tint.copy(alpha = .43f), tint)), shape)
-        .border(1.dp, colors.accent.copy(alpha = .77f), shape)
+        .background(
+            Brush.horizontalGradient(
+                0f to colors.tint.copy(
+                    red = (colors.tint.red * 1.2f).coerceAtMost(1f),
+                    green = (colors.tint.green * 1.2f).coerceAtMost(1f),
+                    blue = (colors.tint.blue * 1.2f).coerceAtMost(1f),
+                ),
+                .5f to colors.tint.copy(alpha = .6f),
+                .8f to Background,
+                1f to Background,
+            ),
+            shape,
+        )
+        .drawBehind {
+            val stroke = 1.dp.toPx()
+            val y = size.height - stroke / 2f
+            drawLine(
+                colors.accent.copy(alpha = .77f),
+                Offset(0f, y), Offset(size.width, y), stroke,
+            )
+        }
         .padding(horizontal = 11.dp, vertical = 5.dp)
     if (wrap) {
         Column(cardModifier) {

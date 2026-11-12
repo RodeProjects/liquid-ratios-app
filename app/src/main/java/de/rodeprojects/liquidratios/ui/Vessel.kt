@@ -93,7 +93,7 @@ internal fun VesselSection(mix: Mix, maxVesselWidth: Dp, modifier: Modifier, edi
             EditableAmount(
                 value = max,
                 label = editLabel,
-                modifier = Modifier.align(Alignment.TopEnd).padding(top = 7.dp)
+                modifier = Modifier.align(Alignment.TopEnd)
                     .fillMaxWidth(.27f).testTag("maximum"),
                 style = TextStyle(
                     color = SecondaryInk, fontSize = if (largeLimitText) 17.sp else 12.sp,
@@ -105,7 +105,7 @@ internal fun VesselSection(mix: Mix, maxVesselWidth: Dp, modifier: Modifier, edi
         }
         Text(
             stringResource(if (mix.unit == MeasureUnit.GRAMS) R.string.weight_caption else R.string.volume_caption),
-            Modifier.padding(top = 9.dp), color = Ink, textAlign = TextAlign.Center,
+            Modifier.padding(top = 9.dp), color = SecondaryInk.copy(alpha = .8f), textAlign = TextAlign.Center,
             fontSize = 12.sp, lineHeight = 16.sp,
         )
     }
@@ -394,7 +394,15 @@ private fun GlassVessel(levels: List<State<Float>>, leftFraction: Float, modifie
                 val y = top + height * proportion
                 val x = right - inset * proportion - if (step == 4) radius else 0f
                 val start = if (step == 4) x else x - span * .0312f
-                val end = if (step == 4) start + (radius + span * .0576f) * .7875f else x + span * .0576f
+                val end = when (step) {
+                    0 -> size.width
+                    4 -> start + (radius + span * .0576f) * .826875f
+                    else -> {
+                        val shortenTick = step in 1..3
+                        val currentEnd = x + span * .0576f * if (shortenTick) .855f else 1f
+                        if (shortenTick) start + (currentEnd - start) * .9f else currentEnd
+                    }
+                }
                 drawLine(
                     Color(0xFFC4CAD0).copy(alpha = .82f),
                     Offset(start, y), Offset(end, y),
