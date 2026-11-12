@@ -104,12 +104,25 @@ class MixEditorTest {
 
     @Test
     fun sliderUpdatesLiveAndSupportsFractionalEndpointsAndSubunitScale() {
-        assertEquals("251", NumberText.display(initial.act(Slide(.502f)).mix.amounts.total))
+        assertEquals("260", NumberText.display(initial.act(Slide(.52f)).mix.amounts.total))
         val small = initial.act(OpenField(InputField.Total), Type("0"), Confirm, OpenField(InputField.Maximum), Type("0,5"), Confirm)
         assertEquals("0,17", NumberText.display(small.act(Slide(.34f)).mix.amounts.total))
         assertEquals("0,5", NumberText.display(small.act(Slide(1f)).mix.amounts.total))
         assertEquals("1", NumberText.display(MixEditor.sliderAmount(.8f, BigDecimal("1.24"))))
         assertEquals("1,24", NumberText.display(MixEditor.sliderAmount(.97f, BigDecimal("1.24"))))
+    }
+
+    @Test
+    fun sliderSnapsToQuarterPointsWithFractionalLimits() {
+        val maximum = BigDecimal("501.01")
+        listOf("125,25", "250,51", "375,76", "501,01").forEachIndexed { index, expected ->
+            val point = (index + 1) * .25f
+            assertEquals(expected, NumberText.display(MixEditor.sliderAmount(point - .01f, maximum)))
+            assertEquals(expected, NumberText.display(MixEditor.sliderAmount(point, maximum)))
+        }
+        assertEquals("116", NumberText.display(MixEditor.sliderAmount(.232f, maximum)))
+        assertEquals("0,13", NumberText.display(MixEditor.sliderAmount(.25f, BigDecimal("0.5"))))
+        assertEquals("0,5", NumberText.display(MixEditor.sliderAmount(1f, BigDecimal("0.5"))))
     }
 
     @Test

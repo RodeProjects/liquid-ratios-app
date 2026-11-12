@@ -4,10 +4,11 @@ LiquidRatios berechnet die Mengen für Mischungen aus zwei, drei oder vier Besta
 
 ## Bedienung
 
-- Wähle unter **Anzahl der Flüssigkeiten** die Zahl der Bestandteile. Tippe zum Bearbeiten auf einen Verhältniswert, eine Einzelmenge, die Gesamtmenge oder den Stift daneben. **Übernehmen** oder **Fertig** bestätigt die Eingabe. **Abbrechen** verwirft den Entwurf.
-- Der Slider ändert die Gesamtmenge beim Ziehen. Die Schritte betragen 1 g bzw. 1 ml und bei einer Maximalmenge unter 1 jeweils 0,01. Eine gebrochene Maximalmenge bleibt als rechter Endpunkt erreichbar.
+- Wähle unter **Anzahl der Flüssigkeiten** die Zahl der Bestandteile. Tippe zum Bearbeiten auf einen Verhältniswert, eine Einzelmenge, die Gesamtmenge oder den jeweiligen Stift. **Übernehmen** oder **Fertig** bestätigt die Eingabe. **Abbrechen** verwirft den Entwurf.
+- Der Slider ändert die Gesamtmenge beim Ziehen und rastet nahe 25 %, 50 %, 75 % und 100 % der Maximalmenge ein. Dazwischen betragen die Schritte 1 g bzw. 1 ml und bei einer Maximalmenge unter 1 jeweils 0,01. Fangpunkte werden auf zwei Nachkommastellen gerundet.
 - Tippe rechts am Gefäß auf die Maximalmenge oder ihren Stift, um die Grenze zu bearbeiten. Bei einer Überschreitung kannst du den Eingabewert korrigieren, die Grenze manuell erhöhen oder abbrechen.
 - Beim Wechsel zwischen Gramm und Milliliter bleiben die Zahlen nach Bestätigung gleich. Es findet keine physikalische Umrechnung statt.
+- Die Prozentangaben am Gefäß beziehen sich auf die aktuell angezeigten Einzelmengen. Bei einer Gesamtmenge von null werden alle Bestandteile mit 0 % angegeben.
 - Im Drei-Punkte-Menü kannst du alle Werte zurücksetzen und unter **Über LiquidRatios** die App-Version nachsehen. Die Startmischung ist 5:1 mit 250 g Gesamtmenge und 500 g Obergrenze.
 
 ## Starten und testen

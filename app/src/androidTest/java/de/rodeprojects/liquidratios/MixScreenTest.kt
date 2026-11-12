@@ -6,8 +6,11 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -16,10 +19,12 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.unit.dp
 import de.rodeprojects.liquidratios.domain.EditorState
 import de.rodeprojects.liquidratios.domain.MixEditor
 import de.rodeprojects.liquidratios.ui.LiquidRatiosTheme
 import de.rodeprojects.liquidratios.ui.MixScreen
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -133,7 +138,11 @@ class MixScreenTest {
 
     @Test
     fun overflowCanOnlyCommitTogetherWithSufficientLimit() {
-        enter("component-1", "120")
+        compose.onNodeWithTag("component-1").performScrollTo().performTouchInput {
+            click(Offset(width - 18.dp.toPx(), centerY))
+        }
+        type("120")
+        click("confirm")
         compose.onNodeWithText("Berechnete Gesamtmenge: 720 g").assertIsDisplayed()
         click("raise-limit")
         type("700")
@@ -158,6 +167,46 @@ class MixScreenTest {
         amount("total", "0,17 g")
         slider.performSemanticsAction(SemanticsActions.SetProgress) { it(1f) }
         amount("total", "0,5 g")
+    }
+
+    @Test
+    fun sliderSnapsToQuarterAmounts() {
+        val slider = compose.onNodeWithTag("amount-slider").performScrollTo()
+        listOf(.24f to "125 g", .51f to "250 g", .74f to "375 g", .99f to "500 g")
+            .forEach { (fraction, expected) ->
+                slider.performSemanticsAction(SemanticsActions.SetProgress) { it(fraction) }
+                amount("total", expected)
+            }
+        enter("total", "123")
+        amount("total", "123 g")
+        val progress = slider.fetchSemanticsNode().config[SemanticsProperties.ProgressBarRangeInfo].current
+        assertEquals(.246f, progress, .001f)
+    }
+
+    @Test
+    fun draggingCanEnterAndLeaveASnapPoint() {
+        val slider = compose.onNodeWithTag("amount-slider")
+        slider.performTouchInput {
+            down(center)
+            moveTo(Offset(width * .245f, centerY), delayMillis = 200)
+        }
+        amount("total", "125 g")
+        slider.performTouchInput {
+            moveTo(Offset(width * .29f, centerY), delayMillis = 200)
+        }
+        val value = slider.fetchSemanticsNode().config[SemanticsProperties.StateDescription]
+            .substringBefore(' ').toInt()
+        assertTrue(value in 130..150)
+        slider.performTouchInput { up() }
+        amount("total", "$value g")
+    }
+
+    @Test
+    fun vesselPercentagesReflectDisplayedAmountsAndZeroTotal() {
+        compose.onNodeWithText("83,33 %", substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("16,67 %", substring = true).assertIsDisplayed()
+        enter("total", "0")
+        compose.onAllNodesWithText("0 %").assertCountEquals(2)
     }
 
     @Test

@@ -40,6 +40,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -380,6 +381,8 @@ private fun TotalSection(mix: Mix, dispatch: (EditorAction) -> Unit) {
         }
     }
     val position = mix.amounts.total.divide(mix.maximum, MathContext.DECIMAL64).toFloat().coerceIn(0f, 1f)
+    var dragging by remember { mutableStateOf(false) }
+    var dragPosition by remember { mutableFloatStateOf(position) }
     Box(Modifier.fillMaxWidth().height(26.dp), contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxWidth().height(17.dp)) {
             val radius = CornerRadius(size.height / 2f)
@@ -394,10 +397,20 @@ private fun TotalSection(mix: Mix, dispatch: (EditorAction) -> Unit) {
                     cornerRadius = radius,
                 )
             }
+            val thumbRadius = 10.dp.toPx()
+            for (point in 1..4) {
+                val x = thumbRadius + (size.width - 2 * thumbRadius) * point / 4f
+                drawCircle(Ink.copy(alpha = .6f), 1.5.dp.toPx(), center = Offset(x, size.height / 2f))
+            }
         }
         Slider(
-            value = position,
-            onValueChange = { dispatch(EditorAction.Slide(it)) },
+            value = if (dragging) dragPosition else position,
+            onValueChange = {
+                dragging = true
+                dragPosition = it
+                dispatch(EditorAction.Slide(it))
+            },
+            onValueChangeFinished = { dragging = false },
             modifier = Modifier.fillMaxWidth().testTag("amount-slider")
                 .onPreviewKeyEvent { event ->
                     val increase = when (event.key) {
@@ -491,12 +504,22 @@ private fun AmountCard(
     if (wrap) {
         Column(cardModifier) {
             ComponentLabel(componentName, colors.accent, Modifier.fillMaxWidth())
-            ComponentAmount(formattedAmount, Modifier.fillMaxWidth().padding(start = 18.dp, top = 3.dp))
+            Row(
+                Modifier.fillMaxWidth().padding(start = 18.dp, top = 3.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ComponentAmount(formattedAmount)
+                Spacer(Modifier.width(5.dp))
+                Pencil(14.dp)
+            }
         }
     } else {
         Row(cardModifier, verticalAlignment = Alignment.CenterVertically) {
             ComponentLabel(componentName, colors.accent, Modifier.weight(1f).padding(end = 8.dp))
             ComponentAmount(formattedAmount)
+            Spacer(Modifier.width(5.dp))
+            Pencil(14.dp)
         }
     }
 }
