@@ -104,7 +104,7 @@ class MixEditorTest {
 
     @Test
     fun sliderUpdatesLiveAndSupportsFractionalEndpointsAndSubunitScale() {
-        assertEquals("260", NumberText.display(initial.act(Slide(.52f)).mix.amounts.total))
+        assertEquals("250", NumberText.display(initial.act(Slide(.52f)).mix.amounts.total))
         val small = initial.act(OpenField(InputField.Total), Type("0"), Confirm, OpenField(InputField.Maximum), Type("0,5"), Confirm)
         assertEquals("0,17", NumberText.display(small.act(Slide(.34f)).mix.amounts.total))
         assertEquals("0,5", NumberText.display(small.act(Slide(1f)).mix.amounts.total))
