@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LiquidRatios</string>
+    <string name="component_count">Anzahl der Flüssigkeiten:</string>
+    <string name="component_count_compact">Anzahl der\nFlüssigkeiten:</string>
+    <plurals name="select_component_count">
+        <item quantity="one">%1$d Flüssigkeit</item>
+        <item quantity="other">%1$d Flüssigkeiten</item>
+    </plurals>
+    <string name="unit_grams">Gramm</string>
+    <string name="unit_milliliters">Milliliter</string>
+    <string name="menu">Einstellungen</string>
+    <string name="reset">Standardwerte zurücksetzen</string>
+    <string name="reset_body">Die Mischung und alle Einstellungen werden auf die Startwerte zurückgesetzt.</string>
+    <string name="reset_confirm">Zurücksetzen</string>
+    <string name="ratio_title">Mischungsverhältnis %1$s</string>
+    <string name="ratio_field">Verhältniswert %1$s</string>
+    <string name="by_weight">Nach Gewicht (g)</string>
+    <string name="by_volume">Nach Volumen (ml)</string>
+    <string name="total_amount">Gewünschte Gesamtmenge</string>
+    <string name="component_name">Flüssigkeit %1$s</string>
+    <string name="component_amount">Menge für Flüssigkeit %1$s</string>
+    <string name="ratio_part">%1$s Anteil</string>
+    <string name="ratio_parts">%1$s Anteile</string>
+    <string name="maximum">Maximalmenge</string>
+    <string name="edit_maximum">Maximalmenge bearbeiten</string>
+    <string name="number_with_unit">%1$s %2$s</string>
+    <string name="weight_caption">Schematische Darstellung der Gewichtsanteile</string>
+    <string name="volume_caption">Schematische Darstellung der Volumenanteile</string>
+    <string name="vessel_description">Mischgefäß, Füllhöhe %1$s Prozent. Von unten nach oben: %2$s.</string>
+    <string name="vessel_layer">%1$s %2$s</string>
+    <string name="confirm">Übernehmen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="switch_unit">Zu %1$s wechseln?</string>
+    <string name="switch_unit_body">Die Zahlenwerte bleiben gleich und gelten anschließend in %1$s. Es findet keine physikalische Umrechnung statt.</string>
+    <string name="switch_confirm">Einheit wechseln</string>
+    <string name="overflow_title">Maximalmenge überschritten</string>
+    <string name="overflow_total">Berechnete Gesamtmenge: %1$s</string>
+    <string name="overflow_maximum">Bisherige Grenze: %1$s</string>
+    <string name="correct_input">Eingabewert anpassen</string>
+    <string name="raise_maximum">Maximalmenge anpassen</string>
+    <string name="minimum_maximum">Die neue Grenze muss mindestens %1$s betragen.</string>
+    <string name="error_amount">Gib eine Menge ab 0 mit höchstens zwei Nachkommastellen ein.</string>
+    <string name="error_positive_amount">Gib eine Menge größer als 0 mit höchstens zwei Nachkommastellen ein.</string>
+    <string name="error_ratio">Gib einen Verhältniswert größer als 0 mit höchstens zwölf Nachkommastellen ein.</string>
+    <string name="error_below_total">Die Grenze muss mindestens %1$s betragen.</string>
+    <string name="storage_load_error">Gespeicherte Einstellungen konnten nicht geladen werden.</string>
+    <string name="storage_save_error">Die aktuellen Einstellungen konnten nicht gespeichert werden.</string>
+</resources>
