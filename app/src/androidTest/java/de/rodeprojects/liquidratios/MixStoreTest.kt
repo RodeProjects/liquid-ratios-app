@@ -1,9 +1,10 @@
 package de.rodeprojects.liquidratios
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.test.platform.app.InstrumentationRegistry
 import de.rodeprojects.liquidratios.data.MixStore
-import de.rodeprojects.liquidratios.domain.MeasureUnit
 import de.rodeprojects.liquidratios.domain.Mix
 import de.rodeprojects.liquidratios.domain.NumberText
 import de.rodeprojects.liquidratios.domain.Quantity
@@ -15,18 +16,43 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class MixStoreTest {
     @Test
-    fun reopensDiskStoreWithHiddenRatiosUnitLimitAndExactComponentAnchor() = runBlocking {
+    fun legacyUnitPreferenceKeepsSavedAmountsAndIsRemovedOnSave() = runBlocking {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val file = File(context.cacheDir, "test-${UUID.randomUUID()}.preferences_pb")
+        val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        try {
+            val preferences = PreferenceDataStoreFactory.create(scope = scope) { file }
+            val oldUnit = stringPreferencesKey("unit")
+            preferences.edit {
+                it[oldUnit] = "MILLILITERS"
+                it[stringPreferencesKey("amount")] = "123.45"
+            }
+            val store = MixStore(preferences)
+            val mix = store.load()
+            assertEquals("123,45", NumberText.display(mix.amounts.total))
+            store.save(mix)
+            assertNull(preferences.data.first()[oldUnit])
+            assertEquals("123,45", NumberText.display(store.load().amounts.total))
+        } finally {
+            scope.coroutineContext[Job]?.cancelAndJoin()
+            file.delete()
+        }
+    }
+
+    @Test
+    fun reopensDiskStoreWithHiddenRatiosLimitAndExactComponentAnchor() = runBlocking {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val file = File(context.cacheDir, "test-${UUID.randomUUID()}.preferences_pb")
         val persisted = Mix(
             ratios = listOf("1", "1", "3.25", "8.5").map(::BigDecimal),
-            unit = MeasureUnit.MILLILITERS,
             quantity = Quantity.Component(1, BigDecimal("0.03")),
             maximum = BigDecimal("900.75"),
         )

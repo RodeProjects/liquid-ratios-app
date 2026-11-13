@@ -23,7 +23,6 @@ internal sealed interface Prompt {
     ) : Prompt
 
     data class Overflow(val input: Edit, val quantity: Quantity, val total: BigDecimal) : Prompt
-    data class SwitchUnit(val unit: MeasureUnit) : Prompt
     data object MenuReset : Prompt
 }
 
@@ -33,7 +32,6 @@ internal sealed interface EditorAction {
     data class OpenField(val field: InputField) : EditorAction
     data class Type(val value: String) : EditorAction
     data class SelectCount(val count: Int) : EditorAction
-    data class SelectUnit(val unit: MeasureUnit) : EditorAction
     data class Slide(val fraction: Float) : EditorAction
     data class Step(val increase: Boolean) : EditorAction
     data object OpenReset : EditorAction
@@ -57,9 +55,6 @@ internal object MixEditor {
             is EditorAction.SelectCount -> if (prompt == null && action.count in MIN_COMPONENTS..MAX_COMPONENTS) {
                 state.copy(mix = mix.changeCount(action.count))
             } else state
-            is EditorAction.SelectUnit -> if (prompt == null && action.unit != mix.unit) {
-                state.copy(prompt = Prompt.SwitchUnit(action.unit))
-            } else state
             is EditorAction.Slide -> if (prompt == null && action.fraction.isFinite()) {
                 applySliderAmount(state, sliderAmount(action.fraction, mix.maximum))
             } else state
@@ -75,7 +70,6 @@ internal object MixEditor {
             EditorAction.OpenReset -> if (prompt == null) state.copy(prompt = Prompt.MenuReset) else state
             EditorAction.Confirm -> when (prompt) {
                 is Prompt.Edit -> submit(state, prompt)
-                is Prompt.SwitchUnit -> EditorState(mix.copy(unit = prompt.unit))
                 Prompt.MenuReset -> EditorState()
                 else -> state
             }

@@ -2,14 +2,11 @@
 <resources>
     <string name="app_name">LiquidRatios</string>
     <string name="component_count">Anzahl der Bestandteile:</string>
-    <string name="component_count_compact_first">Anzahl der</string>
-    <string name="component_count_compact_second">Bestandteile:</string>
+    <string name="component_count_wrapped">Anzahl der\nBestandteile:</string>
     <plurals name="select_component_count">
         <item quantity="one">%1$d Bestandteil</item>
         <item quantity="other">%1$d Bestandteile</item>
     </plurals>
-    <string name="unit_grams">Gramm</string>
-    <string name="unit_milliliters">Milliliter</string>
     <string name="menu">Einstellungen</string>
     <string name="reset">Standardwerte zurücksetzen</string>
     <string name="reset_body">Die Mischung und alle Einstellungen werden auf die Startwerte zurückgesetzt.</string>
@@ -25,17 +22,13 @@
     <string name="component_amount">Menge für Bestandteil %1$s</string>
     <string name="maximum">Maximalmenge</string>
     <string name="edit_maximum">Maximalmenge bearbeiten</string>
-    <string name="number_with_unit">%1$s %2$s</string>
+    <string name="number_with_unit">%1$s g</string>
     <string name="weight_caption">Schematische Darstellung der Gewichtsanteile</string>
-    <string name="volume_caption">Schematische Darstellung der Volumenanteile</string>
     <string name="vessel_description">Mischgefäß, Füllhöhe %1$s Prozent. Von unten nach oben: %2$s.</string>
     <string name="vessel_layer">%1$s %2$s (%3$s Prozent)</string>
     <string name="component_percent">%1$s %%</string>
     <string name="confirm">Übernehmen</string>
     <string name="cancel">Abbrechen</string>
-    <string name="switch_unit">Zu %1$s wechseln?</string>
-    <string name="switch_unit_body">Die Zahlenwerte bleiben gleich und gelten anschließend in %1$s. Es findet keine physikalische Umrechnung statt.</string>
-    <string name="switch_confirm">Einheit wechseln</string>
     <string name="overflow_title">Maximalmenge überschritten</string>
     <string name="overflow_total">Berechnete Gesamtmenge: %1$s</string>
     <string name="overflow_maximum">Bisherige Grenze: %1$s</string>

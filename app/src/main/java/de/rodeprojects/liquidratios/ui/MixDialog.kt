@@ -75,8 +75,8 @@ internal fun MixDialog(prompt: Prompt, mix: Mix, dispatch: (EditorAction) -> Uni
                     Modifier.verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Text(stringResource(R.string.overflow_total, amountText(prompt.total, mix.unit)))
-                    Text(stringResource(R.string.overflow_maximum, amountText(mix.maximum, mix.unit)))
+                    Text(stringResource(R.string.overflow_total, amountText(prompt.total)))
+                    Text(stringResource(R.string.overflow_maximum, amountText(mix.maximum)))
                 }
             },
             confirmButton = {
@@ -91,14 +91,6 @@ internal fun MixDialog(prompt: Prompt, mix: Mix, dispatch: (EditorAction) -> Uni
                 }
             },
         )
-        is Prompt.SwitchUnit -> {
-            val name = unitName(prompt.unit)
-            ConfirmDialog(
-                stringResource(R.string.switch_unit, name),
-                stringResource(R.string.switch_unit_body, name),
-                stringResource(R.string.switch_confirm), confirm, cancel,
-            )
-        }
         Prompt.MenuReset -> ConfirmDialog(
             stringResource(R.string.reset),
             stringResource(R.string.reset_body),
@@ -126,7 +118,7 @@ private fun NumberDialog(
         InputError.AMOUNT -> stringResource(R.string.error_amount)
         InputError.POSITIVE_AMOUNT -> stringResource(R.string.error_positive_amount)
         InputError.RATIO -> stringResource(R.string.error_ratio)
-        InputError.BELOW_TOTAL -> stringResource(R.string.error_below_total, amountText(required, mix.unit))
+        InputError.BELOW_TOTAL -> stringResource(R.string.error_below_total, amountText(required))
         null -> null
     }
     val requester = remember { FocusRequester() }
@@ -141,7 +133,7 @@ private fun NumberDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (prompt.pending != null) {
-                    Text(stringResource(R.string.minimum_maximum, amountText(required, mix.unit)))
+                    Text(stringResource(R.string.minimum_maximum, amountText(required)))
                 }
                 OutlinedTextField(
                     value = TextFieldValue(prompt.draft, selection, composition),
@@ -152,7 +144,7 @@ private fun NumberDialog(
                     },
                     modifier = Modifier.fillMaxWidth().focusRequester(requester).testTag("number-input"),
                     suffix = if (prompt.field is InputField.Ratio) null else {
-                        { Text(mix.unit.symbol) }
+                        { Text("g") }
                     },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done,

@@ -1,13 +1,12 @@
 # LiquidRatios
 
-LiquidRatios berechnet die Mengen für Mischungen aus zwei, drei oder vier Bestandteilen, etwa für Harz und Härter. Die deutschsprachige Android-App arbeitet vollständig offline und speichert die letzte gültige Mischung lokal. Sie benötigt weder ein Konto noch eine Netzwerkberechtigung.
+LiquidRatios berechnet Gewichtsmengen in Gramm für Mischungen aus zwei, drei oder vier Bestandteilen, etwa für Harz und Härter. Die deutschsprachige Android-App arbeitet vollständig offline und speichert die letzte gültige Mischung lokal. Sie benötigt weder ein Konto noch eine Netzwerkberechtigung.
 
 ## Bedienung
 
 - Wähle unter **Anzahl der Bestandteile** die Zahl der Bestandteile. Tippe zum Bearbeiten auf einen Verhältniswert, eine Einzelmenge, die Gesamtmenge oder den jeweiligen Stift. **Übernehmen** oder **Fertig** bestätigt die Eingabe. **Abbrechen** verwirft den Entwurf.
-- Der Slider ändert die Gesamtmenge beim Ziehen und rastet nahe 25 %, 50 %, 75 % und 100 % der Maximalmenge ein. Dazwischen betragen die Schritte 1 g bzw. 1 ml und bei einer Maximalmenge unter 1 jeweils 0,01. Fangpunkte werden auf zwei Nachkommastellen gerundet.
+- Der Slider ändert die Gesamtmenge beim Ziehen und rastet nahe 25 %, 50 %, 75 % und 100 % der Maximalmenge ein. Dazwischen betragen die Schritte 1 g und bei einer Maximalmenge unter 1 g jeweils 0,01 g. Fangpunkte werden auf zwei Nachkommastellen gerundet.
 - Tippe rechts am Gefäß auf die Maximalmenge oder ihren Stift, um die Grenze zu bearbeiten. Bei einer Überschreitung kannst du den Eingabewert korrigieren, die Grenze manuell erhöhen oder abbrechen.
-- Beim Wechsel zwischen Gramm und Milliliter bleiben die Zahlen nach Bestätigung gleich. Es findet keine physikalische Umrechnung statt.
 - Die Prozentangaben am Gefäß beziehen sich auf die aktuell angezeigten Einzelmengen. Bei einer Gesamtmenge von null werden alle Bestandteile mit 0 % angegeben.
 - Im Drei-Punkte-Menü kannst du alle Werte zurücksetzen und unter **Über LiquidRatios** die App-Version nachsehen. Die Startmischung ist 5:1 mit 250 g Gesamtmenge und 500 g Obergrenze.
 
@@ -43,9 +42,11 @@ Das Projekt verwendet Kotlin, Jetpack Compose und Material 3, Gradle mit Kotlin 
 
 Der Zustand speichert eine Gesamtmenge oder die zuletzt ausdrücklich eingegebene Einzelmenge mit ihrer Komponente. Die Einzelmengen werden daraus abgeleitet. Ganze Hundertstel werden anhand der größten exakten Reste verteilt, bei Gleichstand in Komponentenreihenfolge. Eine direkt eingegebene Einzelmenge bleibt bei dieser Verteilung erhalten. Verhältnis- oder Komponentenanzahländerungen behalten die bisherige Gesamtmenge bei. Ausgeblendete Verhältnisse bleiben in DataStore gespeichert. Eingabeentwürfe und Dialoge gehören nur zum aktuellen UI-Zustand.
 
+Beim Aktualisieren älterer Installationen bleiben gespeicherte Zahlenwerte erhalten und gelten anschließend als Gramm. Eine zuvor gewählte Volumeneinheit wird nicht umgerechnet.
+
 ## Grenzen
 
-- Das Gefäß stellt die Gewichts- oder Volumenanteile schematisch dar. Dichten und tatsächliche Füllstände werden nicht ermittelt.
+- Das Gefäß stellt die Gewichtsanteile schematisch dar. Dichten und tatsächliche Füllstände werden nicht ermittelt.
 - Manuelle Mengen haben bis zu zwölf Vor- und zwei Nachkommastellen. Verhältnisse unterstützen bis zu zwölf Vor- und zwölf Nachkommastellen. Die Übersicht zeigt maximal zwei Nachkommastellen. Sehr kleine Verhältnisse erscheinen als `<0,01`, während der Editor den vollständigen Wert zeigt.
 - Auf schmalen Displays und bei größerer Schrift bricht die Kopfzeile um. Im Hochformat vergrößert freier Platz die Abstände zwischen den Bereichen. Bei wenig Platz lässt sich bis unter die Gefäßbeschriftung scrollen.
 

@@ -6,10 +6,6 @@ import java.math.RoundingMode
 internal const val MIN_COMPONENTS = 2
 internal const val MAX_COMPONENTS = 4
 
-internal enum class MeasureUnit(val symbol: String) {
-    GRAMS("g"), MILLILITERS("ml")
-}
-
 internal sealed interface Quantity {
     val amount: BigDecimal
 
@@ -20,7 +16,6 @@ internal sealed interface Quantity {
 internal data class Mix(
     val count: Int = MIN_COMPONENTS,
     val ratios: List<BigDecimal> = listOf(BigDecimal("5"), BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ONE),
-    val unit: MeasureUnit = MeasureUnit.GRAMS,
     val quantity: Quantity = Quantity.Total(BigDecimal("250")),
     val maximum: BigDecimal = BigDecimal("500"),
 ) {

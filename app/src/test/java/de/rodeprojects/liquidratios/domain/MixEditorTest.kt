@@ -6,7 +6,6 @@ import de.rodeprojects.liquidratios.domain.EditorAction.CorrectInput
 import de.rodeprojects.liquidratios.domain.EditorAction.OpenField
 import de.rodeprojects.liquidratios.domain.EditorAction.RaiseLimit
 import de.rodeprojects.liquidratios.domain.EditorAction.SelectCount
-import de.rodeprojects.liquidratios.domain.EditorAction.SelectUnit
 import de.rodeprojects.liquidratios.domain.EditorAction.Slide
 import de.rodeprojects.liquidratios.domain.EditorAction.Type
 import java.math.BigDecimal
@@ -51,19 +50,6 @@ class MixEditorTest {
         val restored = two.act(SelectCount(4)).mix
         assertEquals(listOf("5", "1", "3,25", "4"), restored.activeRatios.map(NumberText::display))
         assertEquals("250", NumberText.display(restored.amounts.total))
-    }
-
-    @Test
-    fun switchUnitRequiresConfirmationAndKeepsAmountsAndAnchor() {
-        val anchored = initial.act(OpenField(InputField.Component(1)), Type("50"), Confirm)
-        val pending = anchored.act(SelectUnit(MeasureUnit.MILLILITERS))
-        assertEquals(anchored.mix, pending.mix)
-        assertEquals(anchored, pending.act(Cancel))
-        val switched = pending.act(Confirm).mix
-        assertEquals(MeasureUnit.MILLILITERS, switched.unit)
-        assertEquals(anchored.mix.amounts, switched.amounts)
-        assertEquals(anchored.mix.quantity, switched.quantity)
-        assertEquals(anchored.mix.maximum, switched.maximum)
     }
 
     @Test

@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.rodeprojects.liquidratios.R
 import de.rodeprojects.liquidratios.domain.MAX_COMPONENTS
-import de.rodeprojects.liquidratios.domain.MeasureUnit
 import de.rodeprojects.liquidratios.domain.Mix
 import de.rodeprojects.liquidratios.domain.NumberText
 import java.math.BigDecimal
@@ -57,11 +56,11 @@ internal const val VESSEL_ASPECT_RATIO = 1.31f
 
 @Composable
 internal fun VesselSection(mix: Mix, maxVesselWidth: Dp, modifier: Modifier, editMaximum: () -> Unit) {
-    val max = amountText(mix.maximum, mix.unit)
+    val max = amountText(mix.maximum)
     val editLabel = stringResource(R.string.edit_maximum)
     val layers = mix.amounts.components.mapIndexed { index, amount ->
         val share = componentPercent(amount, mix.amounts.total)
-        stringResource(R.string.vessel_layer, letter(index), amountText(amount, mix.unit), share)
+        stringResource(R.string.vessel_layer, letter(index), amountText(amount), share)
     }
     val percent = mix.amounts.total.movePointRight(2).divide(mix.maximum, MathContext.DECIMAL64)
     val description = stringResource(
@@ -104,7 +103,7 @@ internal fun VesselSection(mix: Mix, maxVesselWidth: Dp, modifier: Modifier, edi
             )
         }
         Text(
-            stringResource(if (mix.unit == MeasureUnit.GRAMS) R.string.weight_caption else R.string.volume_caption),
+            stringResource(R.string.weight_caption),
             Modifier.padding(top = 9.dp), color = SecondaryInk.copy(alpha = .8f), textAlign = TextAlign.Center,
             fontSize = 12.sp, lineHeight = 16.sp,
         )

@@ -63,6 +63,10 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
@@ -73,8 +77,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -85,23 +91,17 @@ import de.rodeprojects.liquidratios.domain.EditorAction
 import de.rodeprojects.liquidratios.domain.InputField
 import de.rodeprojects.liquidratios.domain.MAX_COMPONENTS
 import de.rodeprojects.liquidratios.domain.MIN_COMPONENTS
-import de.rodeprojects.liquidratios.domain.MeasureUnit
 import de.rodeprojects.liquidratios.domain.Mix
 import de.rodeprojects.liquidratios.domain.NumberText
 import java.math.BigDecimal
 import java.math.MathContext
+import kotlin.math.roundToInt
 
 internal fun letter(index: Int): String = ('A' + index).toString()
 
 @Composable
-internal fun amountText(amount: BigDecimal, unit: MeasureUnit): String =
-    stringResource(R.string.number_with_unit, NumberText.display(amount), unit.symbol)
-
-@Composable
-internal fun unitName(unit: MeasureUnit): String =
-    stringResource(if (unit == MeasureUnit.GRAMS) R.string.unit_grams else R.string.unit_milliliters)
-
-private val HeaderSpacing = 10.dp
+internal fun amountText(amount: BigDecimal): String =
+    stringResource(R.string.number_with_unit, NumberText.display(amount))
 
 @Composable
 internal fun MixScreen(state: AppState, dispatch: (EditorAction) -> Unit) {
@@ -125,7 +125,7 @@ internal fun MixScreen(state: AppState, dispatch: (EditorAction) -> Unit) {
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Column {
-                Header(mix, dispatch)
+                Header(mix, dispatch, isLandscape = !portrait)
                 HorizontalDivider(color = Divider)
                 state.storageError?.let { error ->
                     Text(
@@ -145,7 +145,7 @@ internal fun MixScreen(state: AppState, dispatch: (EditorAction) -> Unit) {
                 val wrapCards = maxWidth.value / LocalDensity.current.fontScale < 275f
                 Column {
                     mix.amounts.components.forEachIndexed { index, amount ->
-                        AmountCard(index, amount, mix.unit, wrapCards) {
+                        AmountCard(index, amount, wrapCards) {
                             dispatch(EditorAction.OpenField(InputField.Component(index)))
                         }
                     }
@@ -160,29 +160,46 @@ internal fun MixScreen(state: AppState, dispatch: (EditorAction) -> Unit) {
 }
 
 @Composable
-private fun Header(mix: Mix, dispatch: (EditorAction) -> Unit) {
+private fun Header(mix: Mix, dispatch: (EditorAction) -> Unit, isLandscape: Boolean) {
     var showAbout by rememberSaveable { mutableStateOf(false) }
     val openAbout = { showAbout = true }
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        if (maxWidth.value >= 370f) {
-            Row(
-                Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(Modifier.wrapContentWidth(unbounded = true), verticalArrangement = Arrangement.Center) {
-                    Text(
-                        stringResource(R.string.component_count_compact_first),
-                        color = Ink, fontSize = 13.sp, lineHeight = 16.sp,
-                        maxLines = 1, softWrap = false, overflow = TextOverflow.Clip,
-                    )
-                    Text(
-                        stringResource(R.string.component_count_compact_second),
-                        color = Ink, fontSize = 13.sp, lineHeight = 16.sp,
-                        maxLines = 1, softWrap = false, overflow = TextOverflow.Clip,
-                    )
-                }
-                Spacer(Modifier.width(8.dp))
-                Segments {
+    val headerLeftInRoot = remember { mutableFloatStateOf(Float.NaN) }
+    val burgerLeftInRoot = remember { mutableFloatStateOf(Float.NaN) }
+    BoxWithConstraints(
+        Modifier.fillMaxWidth().onGloballyPositioned { coordinates ->
+            val left = coordinates.positionInRoot().x
+            if (headerLeftInRoot.floatValue != left) headerLeftInRoot.floatValue = left
+        },
+    ) {
+        val minimumGap = 8.dp
+        val countControlWidth = 44.dp * (MAX_COMPONENTS - MIN_COMPONENTS + 1) + 4.dp
+        val menuWidth = 40.dp
+        val menuGlyphWidth = 13.dp
+        val menuVisibleLeftInset = (menuWidth - menuGlyphWidth) / 2
+        val maximumLabelWidth = (maxWidth - countControlWidth - menuWidth + menuVisibleLeftInset - minimumGap * 2)
+            .coerceAtLeast(0.dp).coerceAtMost(260.dp)
+        val label = stringResource(R.string.component_count)
+        val labelStyle = TextStyle(color = Ink, fontSize = 13.sp, lineHeight = 16.sp)
+        val textMeasurer = rememberTextMeasurer()
+        val density = LocalDensity.current
+        val naturalLabelWidth = with(density) {
+            textMeasurer.measure(label, style = labelStyle, softWrap = false, maxLines = 1).size.width.toDp()
+        }
+        val wrapLabel = naturalLabelWidth > maximumLabelWidth
+        val displayedLabel = stringResource(if (wrapLabel) R.string.component_count_wrapped else R.string.component_count)
+        val displayedLabelWidth = with(density) {
+            textMeasurer.measure(displayedLabel, style = labelStyle, softWrap = false, maxLines = 2).size.width.toDp()
+        }.coerceAtMost(maximumLabelWidth)
+        Layout(
+            content = {
+                Text(
+                    displayedLabel,
+                    Modifier.width(displayedLabelWidth).testTag("component-count-label"),
+                    style = labelStyle,
+                    maxLines = if (wrapLabel) 2 else 1,
+                    softWrap = false, overflow = TextOverflow.Clip,
+                )
+                Segments(modifier = Modifier.testTag("component-count-control")) {
                     for (count in MIN_COMPONENTS..MAX_COMPONENTS) {
                         Segment(
                             count.toString(), pluralStringResource(R.plurals.select_component_count, count, count),
@@ -190,22 +207,57 @@ private fun Header(mix: Mix, dispatch: (EditorAction) -> Unit) {
                         ) { dispatch(EditorAction.SelectCount(count)) }
                     }
                 }
-                Spacer(Modifier.weight(1f))
-                UnitControl(mix, 44.dp, dispatch)
-                Spacer(Modifier.width(4.dp))
-                SettingsMenu(dispatch, 40.dp, openAbout)
-            }
-        } else {
-            Column(Modifier.fillMaxWidth().padding(bottom = 5.dp)) {
-                CountControl(mix, 48.dp, dispatch, Modifier.fillMaxWidth())
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    UnitControl(mix, 48.dp, dispatch)
-                    SettingsMenu(dispatch, 48.dp, openAbout)
+                SettingsMenu(dispatch, menuWidth, openAbout) { coordinates ->
+                    val left = coordinates.positionInRoot().x
+                    if (burgerLeftInRoot.floatValue != left) burgerLeftInRoot.floatValue = left
                 }
+            },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("component-count-row"),
+        ) { measurables, constraints ->
+            val labelPlaceable = measurables[0].measure(
+                Constraints(maxWidth = maximumLabelWidth.roundToPx(), maxHeight = constraints.maxHeight),
+            )
+            val selectorPlaceable = measurables[1].measure(constraints.copy(minWidth = 0, minHeight = 0))
+            val menuPlaceable = measurables[2].measure(constraints.copy(minWidth = 0, minHeight = 0))
+
+            val menuX = constraints.maxWidth - menuPlaceable.width
+            val predictedVisibleBurgerX = menuX +
+                ((menuPlaceable.width - with(density) { menuGlyphWidth.roundToPx() }) / 2f).roundToInt().toFloat()
+            val visibleBurgerX = if (headerLeftInRoot.floatValue.isFinite() && burgerLeftInRoot.floatValue.isFinite()) {
+                burgerLeftInRoot.floatValue - headerLeftInRoot.floatValue
+            } else {
+                predictedVisibleBurgerX
+            }
+            val selectorMinX = labelPlaceable.width + with(density) { minimumGap.roundToPx() }
+            val selectorMaxX = visibleBurgerX - selectorPlaceable.width - with(density) { minimumGap.roundToPx() }
+            val centeredSelectorX = (labelPlaceable.width + visibleBurgerX - selectorPlaceable.width) / 2f
+            val rowCenteredSelectorX = (constraints.maxWidth - selectorPlaceable.width) / 2f
+            val minimumGapPx = with(density) { minimumGap.roundToPx() }
+            val canCenterAcrossRow = isLandscape && !wrapLabel &&
+                rowCenteredSelectorX - labelPlaceable.width >= minimumGapPx &&
+                visibleBurgerX - rowCenteredSelectorX - selectorPlaceable.width >= minimumGapPx
+            val selectorPosition = if (canCenterAcrossRow) {
+                rowCenteredSelectorX
+            } else if (selectorMaxX >= selectorMinX) {
+                centeredSelectorX.coerceIn(selectorMinX.toFloat(), selectorMaxX)
+            } else {
+                centeredSelectorX
+            }
+            val selectorX = selectorPosition.roundToInt()
+            val selectorTranslationX = selectorPosition - selectorX
+
+            val layoutHeight = maxOf(
+                constraints.minHeight,
+                labelPlaceable.height,
+                selectorPlaceable.height,
+                menuPlaceable.height,
+            ).coerceAtMost(constraints.maxHeight)
+            layout(constraints.maxWidth, layoutHeight) {
+                labelPlaceable.place(0, (layoutHeight - labelPlaceable.height) / 2)
+                selectorPlaceable.placeWithLayer(selectorX, (layoutHeight - selectorPlaceable.height) / 2) {
+                    translationX = selectorTranslationX
+                }
+                menuPlaceable.place(menuX, (layoutHeight - menuPlaceable.height) / 2)
             }
         }
     }
@@ -213,48 +265,8 @@ private fun Header(mix: Mix, dispatch: (EditorAction) -> Unit) {
 }
 
 @Composable
-private fun CountControl(
-    mix: Mix,
-    itemWidth: Dp,
-    dispatch: (EditorAction) -> Unit,
-    modifier: Modifier,
-) {
-    Row(
-        modifier,
-        horizontalArrangement = Arrangement.spacedBy(HeaderSpacing),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            stringResource(R.string.component_count),
-            Modifier.weight(1f, fill = false),
-            color = Ink, fontSize = 13.sp, lineHeight = 16.sp,
-            maxLines = 2, softWrap = true, overflow = TextOverflow.Clip,
-        )
-        Segments {
-            for (count in MIN_COMPONENTS..MAX_COMPONENTS) {
-                Segment(
-                    count.toString(), pluralStringResource(R.plurals.select_component_count, count, count),
-                    "count-$count", mix.count == count, itemWidth,
-                ) { dispatch(EditorAction.SelectCount(count)) }
-            }
-        }
-    }
-}
-
-@Composable
-private fun UnitControl(mix: Mix, itemWidth: Dp, dispatch: (EditorAction) -> Unit) {
-    Segments {
-        MeasureUnit.entries.forEach { unit ->
-            Segment(unit.symbol, unitName(unit), "unit-${unit.symbol}", mix.unit == unit, itemWidth) {
-                dispatch(EditorAction.SelectUnit(unit))
-            }
-        }
-    }
-}
-
-@Composable
-private fun Segments(content: @Composable RowScope.() -> Unit) {
-    Box(contentAlignment = Alignment.Center) {
+private fun Segments(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
+    Box(modifier, contentAlignment = Alignment.Center) {
         Box(
             Modifier.matchParentSize().padding(vertical = 13.dp)
                 .clip(CircleShape).background(Panel).border(1.dp, Divider, CircleShape),
@@ -293,7 +305,12 @@ private fun Segment(
 }
 
 @Composable
-private fun SettingsMenu(dispatch: (EditorAction) -> Unit, width: Dp, openAbout: () -> Unit) {
+private fun SettingsMenu(
+    dispatch: (EditorAction) -> Unit,
+    width: Dp,
+    openAbout: () -> Unit,
+    onBurgerPositioned: (LayoutCoordinates) -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
     val description = stringResource(R.string.menu)
     Box {
@@ -302,9 +319,22 @@ private fun SettingsMenu(dispatch: (EditorAction) -> Unit, width: Dp, openAbout:
             Modifier.width(width).height(48.dp).testTag("settings")
                 .semantics { contentDescription = description },
         ) {
-            Canvas(Modifier.size(14.dp)) {
+            Canvas(
+                Modifier.size(width = 13.dp, height = 18.dp).testTag("burger-icon")
+                    .onGloballyPositioned(onBurgerPositioned),
+            ) {
+                val lineHeight = 1.7.dp.toPx()
+                val lineWidth = size.width
                 for (index in -1..1) {
-                    drawCircle(Ink, 1.55.dp.toPx(), center.copy(y = center.y + index * 5.dp.toPx()))
+                    drawRoundRect(
+                        Ink,
+                        topLeft = Offset(
+                            (size.width - lineWidth) / 2f,
+                            center.y + index * 5.dp.toPx() - lineHeight / 2f,
+                        ),
+                        size = Size(lineWidth, lineHeight),
+                        cornerRadius = CornerRadius(lineHeight / 2f),
+                    )
                 }
             }
         }
@@ -383,7 +413,7 @@ private fun RatioSection(mix: Mix, dispatch: (EditorAction) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TotalSection(mix: Mix, dispatch: (EditorAction) -> Unit) {
-    val current = amountText(mix.amounts.total, mix.unit)
+    val current = amountText(mix.amounts.total)
     val title = stringResource(R.string.total_amount)
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
@@ -449,8 +479,8 @@ private fun TotalSection(mix: Mix, dispatch: (EditorAction) -> Unit) {
         )
     }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(amountText(BigDecimal.ZERO, mix.unit), color = Ink, fontSize = 13.sp)
-        Text(amountText(mix.maximum, mix.unit), color = Ink, fontSize = 13.sp)
+        Text(amountText(BigDecimal.ZERO), color = Ink, fontSize = 13.sp)
+        Text(amountText(mix.maximum), color = Ink, fontSize = 13.sp)
     }
 }
 
@@ -504,7 +534,6 @@ private fun Pencil(iconSize: Dp) {
 private fun AmountCard(
     index: Int,
     amount: BigDecimal,
-    unit: MeasureUnit,
     wrap: Boolean,
     edit: () -> Unit,
 ) {
@@ -512,7 +541,7 @@ private fun AmountCard(
     val shape = RoundedCornerShape(11.dp)
     val componentName = stringResource(R.string.component_name, letter(index))
     val description = stringResource(R.string.component_amount, letter(index))
-    val formattedAmount = amountText(amount, unit)
+    val formattedAmount = amountText(amount)
     val cardModifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(shape)
         .testTag("component-$index")
         .clickable(role = Role.Button, onClickLabel = description, onClick = edit)

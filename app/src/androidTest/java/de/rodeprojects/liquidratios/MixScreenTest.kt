@@ -1,5 +1,6 @@
 package de.rodeprojects.liquidratios
 
+import android.content.res.Configuration
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsActions
@@ -20,6 +21,7 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
+import androidx.test.platform.app.InstrumentationRegistry
 import de.rodeprojects.liquidratios.domain.EditorState
 import de.rodeprojects.liquidratios.domain.MixEditor
 import de.rodeprojects.liquidratios.ui.LiquidRatiosTheme
@@ -65,18 +67,33 @@ class MixScreenTest {
     }
 
     @Test
-    fun unitConfirmationAndCancellationKeepNumbers() {
-        click("unit-ml")
-        compose.onNodeWithText("Es findet keine physikalische Umrechnung statt.", substring = true).assertIsDisplayed()
-        click("cancel")
-        compose.onNodeWithTag("unit-g").assertIsSelected()
-        amount("total", "250 g")
-        click("unit-ml")
-        click("confirm")
-        compose.onNodeWithTag("unit-ml").assertIsSelected()
-        amount("total", "250 ml")
-        amount("component-0", "208,33 ml")
-        compose.onNodeWithText("Nach Volumen (ml)").assertDoesNotExist()
+    fun componentCountSelectorHasEqualVisibleGapsToLabelAndBurger() {
+        val row = compose.onNodeWithTag("component-count-row").fetchSemanticsNode().boundsInRoot
+        val labelNode = compose.onNodeWithTag("component-count-label").fetchSemanticsNode()
+        val label = labelNode.boundsInRoot
+        val labelText = labelNode.config[SemanticsProperties.Text].joinToString("") { it.text }
+        val selector = compose.onNodeWithTag("component-count-control").fetchSemanticsNode().boundsInRoot
+        val burger = compose.onNodeWithTag("burger-icon", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        val menu = compose.onNodeWithTag("settings").fetchSemanticsNode().boundsInRoot
+        val leftGap = selector.left - label.right
+        val rightGap = burger.left - selector.right
+        val rowCenteredLeft = row.center.x - selector.width / 2 - label.right
+        val rowCenteredRight = burger.left - row.center.x - selector.width / 2
+        val minimumGapPx = with(compose.density) { 8.dp.toPx() }
+        val isLandscape = InstrumentationRegistry.getInstrumentation().targetContext.resources.configuration.orientation ==
+            Configuration.ORIENTATION_LANDSCAPE
+        val canCenterAcrossLandscapeRow = isLandscape && '\n' !in labelText &&
+            rowCenteredLeft >= minimumGapPx && rowCenteredRight >= minimumGapPx
+        android.util.Log.i(
+            "HeaderSpacing",
+            "row=${row.left}..${row.right} label=${label.left}..${label.right} selector=${selector.left}..${selector.right} " +
+                "burger=${burger.left}..${burger.right} menu=${menu.left}..${menu.right} gaps=$leftGap/$rightGap",
+        )
+        if (canCenterAcrossLandscapeRow) {
+            assertEquals(row.center.x, selector.center.x, 0.01f)
+        } else {
+            assertEquals(leftGap, rightGap, 0.01f)
+        }
     }
 
     @Test
