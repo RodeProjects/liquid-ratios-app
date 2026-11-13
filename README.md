@@ -50,4 +50,6 @@ Beim Aktualisieren älterer Installationen bleiben gespeicherte Zahlenwerte erha
 - Manuelle Mengen haben bis zu zwölf Vor- und zwei Nachkommastellen. Verhältnisse unterstützen bis zu zwölf Vor- und zwölf Nachkommastellen. Die Übersicht zeigt maximal zwei Nachkommastellen. Sehr kleine Verhältnisse erscheinen als `<0,01`, während der Editor den vollständigen Wert zeigt.
 - Auf schmalen Displays und bei größerer Schrift bricht die Kopfzeile um. Im Hochformat vergrößert freier Platz die Abstände zwischen den Bereichen. Bei wenig Platz lässt sich bis unter die Gefäßbeschriftung scrollen.
 
-Die [Lizenzübersicht](docs/lizenzen.md) nennt die eingesetzten Drittkomponenten und die Pflichten bei einer späteren Distribution.
+## Lizenz
+
+LiquidRatios steht unter der [Apache License 2.0](LICENSE.md), soweit einzelne Dateien nichts anderes angeben. Der [NOTICE](NOTICE) enthält den Urheberhinweis. Drittkomponenten behalten ihre eigenen Lizenzen; Einzelheiten stehen in der [Lizenzübersicht](docs/lizenzen.md).
